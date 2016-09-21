@@ -30,7 +30,7 @@ postgresql_tuning:
   default_statistics_target: 100
 
 # GetYourData secret key used by Django
-getyourdata_secret_key: REPLACE_WITH_
+getyourdata_secret_key: REPLACE_WITH_SECRET_KEY_TRY_SLAMMING_YOUR_HEAD_ON_THE_KEYBOARD_FOR_EXAMPLE
 
 # GetYourData SMTP settings for sending emails
 getyourdata_smtp_host: smtp.wesendmailandstuff.com

@@ -1,6 +1,6 @@
 # GetYourData Ansible playbook
 
-This repository contains an [Ansible](http://docs.ansible.com/ansible/) playbook that can be used to install and deploy a working live copy of GetYourData Django web application using nginx as the web server, Redis as the in-memory LRU cache and uWSGI as the app server.
+This repository contains an [Ansible](http://docs.ansible.com/ansible/) playbook that can be used to install and deploy a working live copy of GetYourData Django web application using nginx as the web server, PostgreSQL as the SQL database, Redis as the in-memory LRU cache and uWSGI as the app server.
 
 The playbook has been tested more thoroughly on CentOS 7, although untested Debian support is also available. In addition, depending on your environment you'll have to do other minor changes to the playbook in order to deploy the web application correctly. These include configuring the HTTPS certificate as well as the git repository used for continuous deployment.
 
