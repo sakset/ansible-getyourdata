@@ -1,0 +1,58 @@
+- name: Install PostgreSQL
+  package: name={{ item }} state=present
+  with_items:
+    - "{{ postgresql_package_name }}"
+    - "{{ libpq_dev_name }}"
+    - python-psycopg2
+
+- name: Initialize PostgreSQL database (RHEL)
+  when: ansible_distribution == 'CentOS'
+  command: postgresql-setup initdb
+  register: command_result
+  failed_when:
+    - "'Data directory is not empty' not in command_result.stdout"
+    - "command_result.rc != 0"
+
+- name: Use 'md5' authentication for local IPv4 connections
+  register: ipv4_change
+  lineinfile: >
+    dest=/var/lib/pgsql/data/pg_hba.conf
+    regexp="^host    all             all             127.0.0.1/32            ident"
+    line="host    all             all             127.0.0.1/32            md5"
+
+- name: Use 'md5' authentication for local IPv6 connections
+  register: ipv6_change
+  lineinfile: >
+    dest=/var/lib/pgsql/data/pg_hba.conf
+    regexp="^host    all             all             ::1/128                 ident"
+    line="host    all             all             ::1/128                 md5"
+
+- name: Change PostgreSQL performance settings
+  lineinfile: dest=/var/lib/pgsql/data/postgresql.conf regexp="^{{ item }}" line="{{ item }} = {{ postgresql_tuning[item] }}"
+  register: tuning
+  notify: Restart postgresql
+  when: postgresql_tuning is defined
+  with_items:
+    - max_connections
+    - shared_buffers
+    - effective_cache_size
+    - work_mem
+    - maintenance_work_mem
+    - checkpoint_completion_target
+    - wal_buffers
+    - default_statistics_target
+
+- name: Change kernel resource settings as required by PostgreSQL
+  lineinfile: dest=/etc/sysctl.conf regexp="^kernel.{{ item }}" line="kernel.{{ item }} = {{ kernel_resources[item] }}"
+  when: kernel_resources is defined
+  register: sysctl_settings
+  with_items:
+    - shmmax
+    - shmall
+
+- name: Reload sysctl settings
+  command: sysctl --system
+  when: sysctl_settings is defined and sysctl_settings.changed
+
+- name: Enable and start PostgreSQL
+  service: name=postgresql state=started enabled=yes

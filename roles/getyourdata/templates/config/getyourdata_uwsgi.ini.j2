@@ -1,0 +1,23 @@
+[uwsgi]
+chdir = /home/getyourdata/webapp
+module = getyourdata.wsgi
+home = /home/getyourdata/webapp/env
+
+master = true
+processes = {{ ansible_processor_vcpus * 2 }}
+socket = /home/getyourdata/getyourdata.sock
+harakiri = 7
+
+env = DJANGO_SETTINGS_MODULE=getyourdata.production_settings
+
+uid = getyourdata
+gid = getyourdata
+
+chmod-socket = 664
+vacuum = true
+
+touch-reload = /tmp/getyourdata-reload
+
+logto = /var/log/getyourdata-uwsgi.log
+
+stats = /tmp/getyourdata-uwsgi-stats.sock

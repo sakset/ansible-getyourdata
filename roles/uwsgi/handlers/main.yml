@@ -1,0 +1,7 @@
+---
+- name: Restart uwsgi
+  shell: systemctl daemon-reload
+  notify: Restart uwsgi step 2
+
+- name: Restart uwsgi step 2
+  service: name=uwsgi state=restarted

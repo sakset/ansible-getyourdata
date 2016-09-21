@@ -1,0 +1,66 @@
+from .settings import *
+
+import os
+
+DEBUG = False
+TEMPLATE_DEBUG = False
+
+SECRET_KEY = "{{ getyourdata_secret_key }}"
+
+ALLOWED_HOSTS = [
+    "{{ site_domain }}",
+    "localhost"
+]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '{{ getyourdata_postgresql_dbname }}',
+        'USER': '{{ getyourdata_postgresql_user }}',
+        'PASSWORD': '{{ getyourdata_postgresql_password }}',
+        'HOST': 'localhost',
+        'PORT': '', # Default
+    }
+}
+
+CACHES = {
+    # 'default' is a Redis server working as a LRU cache (non-persistent)
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://:{{ redis_cache_password }}@127.0.0.1:{{ redis_cache_port }}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+       	},
+    },
+}
+
+EMAIL_BACKEND = '{% if getyourdata_smtp_use_real_email %}django.core.mail.backends.smtp.EmailBackend{% else %}django.core.mail.backends.console.EmailBackend{% endif %}'
+EMAIL_HOST = "{{ getyourdata_smtp_host }}"
+EMAIL_PORT = {{ getyourdata_smtp_port }}
+EMAIL_HOST_USER = "{{ getyourdata_smtp_host_user }}"
+EMAIL_HOST_PASSWORD = "{{ getyourdata_smtp_host_pass}}"
+EMAIL_USE_TLS = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': '/home/getyourdata/errors.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
+STATIC_URL = '/static/'
+STATIC_ROOT = "{{ getyourdata_static_root }}"
+
+STATICFILES_DIRS = ( '%s/../../static/' % os.path.realpath(__file__), )

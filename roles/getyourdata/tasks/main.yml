@@ -1,0 +1,85 @@
+- name: Create 'getyourdata' user
+  user: name=getyourdata comment="User for GetYourData web application"
+
+- name: Allow nginx to access getyourdata home directory
+  file: path=/home/getyourdata state=directory group={{ nginx_user }} mode=g+x
+
+- name: Create web app directory
+  file: path=/home/getyourdata/webapp state=directory owner=getyourdata
+
+- name: Create web app static file directory
+  file: path=/home/getyourdata/static state=directory owner=getyourdata group={{ nginx_user }}
+
+- name: Clone/update GetYourData repository
+  git: repo=https://github.org/sakset/getyourdata.git dest=/home/getyourdata/webapp force=yes
+  notify: Restart uwsgi
+
+- name: Change Getyourdata directory owner
+  file: path=/home/getyourdata/webapp state=directory recurse=yes owner=getyourdata group={{ nginx_user }}
+
+- name: Create virtualenv
+  pip: virtualenv=/home/getyourdata/webapp/env requirements=/home/getyourdata/webapp/requirements.txt
+  become: yes
+  become_user: getyourdata
+
+- name: Create PostgreSQL database user
+  postgresql_user: name={{ getyourdata_postgresql_user }} password={{ getyourdata_postgresql_password }} encrypted=yes
+  become: yes
+  become_user: postgres
+
+- name: Create PostgreSQL database
+  postgresql_db: name={{ getyourdata_postgresql_dbname }} owner={{ getyourdata_postgresql_user }}
+  become: yes
+  become_user: postgres
+
+- name: Configure GetYourData production settings
+  template: src=templates/config/production_settings.py.j2 dest=/home/getyourdata/webapp/getyourdata/production_settings.py
+  become: yes
+  become_user: getyourdata
+  notify: Restart uwsgi
+
+- name: Add uWSGI configuration
+  template: src=templates/config/getyourdata_uwsgi.ini.j2 dest=/etc/uwsgi/vassals/getyourdata_uwsgi.ini
+  notify: Restart uwsgi
+
+- name: Add nginx configuration
+  template: src=templates/config/getyourdata_nginx.conf.j2 dest=/etc/nginx/conf.d/getyourdata_nginx.conf
+  notify: Restart nginx
+
+- name: Create 'getyourdatabackup' user
+  user: name=getyourdatabackup password={{ getyourdata_backup_password }} comment="User for GetYourData backups"
+
+- name: Add PostgreSQL backup script
+  template: src=templates/scripts/backup_database.sh.j2 dest=/home/getyourdatabackup/backup_database.sh mode=u+rx
+  become: yes
+  become_user: getyourdatabackup
+
+- name: Add .pgpass file for getyourdatabackup
+  template: src=templates/config/pgpass.j2 dest=/home/getyourdatabackup/.pgpass mode=0600
+  become: yes
+  become_user: getyourdatabackup
+
+- name: Add PostgreSQL backup cron job
+  cron: name="Backup GetYourData database" user=getyourdatabackup minute="0" hour="11,23" job="/home/getyourdatabackup/backup_database.sh"
+
+- name: Collect static files
+  shell: cd ~/webapp; . env/bin/activate; python manage.py collectstatic --noinput --settings=getyourdata.production_settings;
+  become: yes
+  become_user: getyourdata
+  notify: Restart nginx
+
+- name: Run database migrations
+  shell: cd ~/webapp; . env/bin/activate; python manage.py migrate --settings=getyourdata.production_settings;
+  become: yes
+  become_user: getyourdata
+  notify: Restart uwsgi
+
+- name: Update web app static file directory owners
+  file: path=/home/getyourdata/static state=directory owner=getyourdata group={{ nginx_user }} recurse=yes
+  notify: Restart nginx
+
+- name: Add uwsgi_params file for uWSGI
+  template: src=templates/config/uwsgi_params.j2 dest=/home/getyourdata/webapp/uwsgi_params
+  become: yes
+  become_user: getyourdata
+  notify: Restart uwsgi

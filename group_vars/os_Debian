@@ -1,0 +1,20 @@
+# nginx
+nginx_user: www-data
+nginx_default_config_path: /etc/nginx/sites-enabled/default
+nginx_config_path: /etc/nginx/nginx.conf
+
+# postgresql
+postgresql_package_name: postgresql
+libpq_dev_package_name: libpq-dev
+
+# redis
+redis_package_name: redis-server
+redis_config_path: /etc/redis/redis.conf
+
+# redis-cache
+redis_cache_config_path: /etc/redis-cache.conf
+
+# uwsgi
+uwsgi_executable_path: /usr/local/bin/uwsgi
+python_dev_package_name: python-dev
+virtualenv_package_name: virtualenv

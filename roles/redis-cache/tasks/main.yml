@@ -1,0 +1,60 @@
+- name: Install Redis
+  package: name={{ redis_package_name }} state=latest
+  notify: Restart redis-cache
+
+- name: Create Redis cache service
+  copy: src=/lib/systemd/system/{{ redis_package_name }}.service dest=/lib/systemd/system/redis-cache-server.service remote_src=yes
+  notify: Restart redis-cache
+
+- name: Create Redis cache configuration file
+  copy: src={{ redis_config_path }} dest={{ redis_cache_config_path }} remote_src=yes
+  notify: Restart redis-cache
+
+- name: Modify Redis cache service
+  lineinfile: dest=/lib/systemd/system/redis-cache-server.service regexp="^ExecStart" line="ExecStart=/usr/bin/redis-server {{ redis_cache_config_path }}"
+  notify: Restart redis-cache
+
+- name: Reload systemd services
+  command: systemctl daemon-reload
+
+- name: Configure Redis cache - password
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^requirepass" insertafter="^# requirepass" line="requirepass {{ redis_cache_password }}"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - port
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^port" line="port {{ redis_cache_port }}"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - pidfile
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^pidfile" line="pidfile /var/run/redis/redis-cache-server.pid"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - logfile
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^logfile" line="logfile /var/log/redis/redis-cache-server.log"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - disable saving
+  replace: dest={{ redis_cache_config_path }} regexp="^save" replace="#save"
+  notify: Restart redis-cache
+
+- name: Create Redis cache DB directory
+  file: path=/var/lib/redis-cache state=directory
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - dir
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^dir" line="dir /var/lib/redis-cache"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - max memory
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^maxmemory" insertafter="^# maxmemory" line="maxmemory {{ redis_cache_maxmemory }}"
+  notify: Restart redis-cache
+
+- name: Configure Redis cache - max memory policy
+  lineinfile: dest={{ redis_cache_config_path }} regexp="^maxmemory-policy" insertafter="^# maxmemory-policy" line="maxmemory-policy allkeys-lru"
+  notify: Restart redis-cache
+
+- name: Enable and start Redis cache server
+  service: name=redis-cache-server state=started enabled=yes
+
+- name: Disable the original Redis server
+  service: name={{ redis_package_name }} state=stopped enabled=no

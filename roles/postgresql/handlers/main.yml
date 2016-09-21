@@ -1,0 +1,6 @@
+- name: Restart postgresql
+  service: name=postgresql state=restarted
+
+- name: Reload sysctl settings
+  command: sysctl --system
+  ignore_errors: yes

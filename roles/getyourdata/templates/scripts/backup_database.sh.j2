@@ -1,0 +1,14 @@
+#!/bin/bash
+# Backup the database
+mkdir -p ~/db_backups;
+
+DATE=$(date +'%F_%H-%M')
+FILE=~/db_backups/$DATE.sql
+
+pg_dump --host=localhost --username={{ getyourdata_postgresql_user }} --verbose {{ getyourdata_postgresql_dbname }} --file=$FILE
+# Compress the database backup
+cd ~/db_backups;
+tar -zcvf $DATE.sql.tar $DATE.sql -C ~/db_backups
+rm $FILE
+# Truncate the database directory to have the 10 latest database backups
+(ls -t|head -n 10;ls)|sort|uniq -u|xargs --no-run-if-empty rm

@@ -1,0 +1,26 @@
+- name: Disable apache2 (httpd)
+  service: name=httpd state=stopped enabled=no
+  when: ansible_distribution == 'CentOS'
+
+- name: Disable apache2 (apache2)
+  service: name=apache2 state=stopped enabled=no
+  when: ansible_distribution != 'CentOS'
+
+- name: Add nginx YUM repo
+  yum_repository:
+      name: nginx_repo
+      description: nginx web server repository
+      baseurl: http://nginx.org/packages/centos/7/$basearch/
+      gpgcheck: no
+
+- name: Install nginx
+  package: name=nginx state=latest
+
+- name: Update amount of workers
+  lineinfile: dest={{ nginx_config_path }} regexp="^worker_processes" line="worker_processes {{ ansible_processor_vcpus }};"
+
+- name: Enable and start nginx
+  service: name=nginx state=started enabled=yes
+
+- name: Disable default configuration
+  command: creates=/etc/nginx/default.example mv {{ nginx_default_config_path }} /etc/nginx/default.example

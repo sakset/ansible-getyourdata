@@ -1,0 +1,50 @@
+# Redis
+redis_cache_password: SET_A_PASSWORD_FOR_REDIS_CACHE_HERE
+
+# Amount of memory Redis uses for the LRU cache at most
+redis_cache_maxmemory: 128M
+
+# PostgreSQL
+getyourdata_postgresql_user: getyourdata
+getyourdata_postgresql_password: POSTGRESQL_USER_PASSWORD_HERE
+
+getyourdata_postgresql_dbname: getyourdata
+
+# Password for getyourdata_backup user
+# the password here is "test", but you'll have to enter a hashed form of the password here
+# You can generate once using the following command (make sure Python and passlib library is installed)
+# $ python -c "from passlib.hash import sha512_crypt; import getpass; print sha512_crypt.encrypt(getpass.getpass())"
+getyourdata_backup_password: $6$rounds=656000$Bhcda9q2QtkyhJjy$em7aAq9fxRLKzi4Fx7UF1q/xG27rkbGOzPPnomT.Zyynhz0UscxL62oKw9FcTIm2D10rf3qfELxuto0M2f2z2.
+
+# PostgreSQL performance settings
+# You can use http://pgtune.leopard.in.ua/ to generate these settings
+postgresql_tuning:
+  max_connections: 200
+  shared_buffers: 192MB
+  effective_cache_size: 576MB
+  work_mem: 983kB
+  maintenance_work_mem: 48MB
+  checkpoint_segments: 32
+  checkpoint_completion_target: 0.7
+  wal_buffers: 5898kB
+  default_statistics_target: 100
+
+# GetYourData secret key used by Django
+getyourdata_secret_key: REPLACE_WITH_
+
+# GetYourData SMTP settings for sending emails
+getyourdata_smtp_host: smtp.wesendmailandstuff.com
+getyourdata_smtp_port: 587
+getyourdata_smtp_host_user: SMTP_USER_HERE
+getyourdata_smtp_host_pass: SMTP_PASSWORD_HERE
+
+# If True, actual email messages will be sent per configuration above
+# if False, no email messages are actually sent
+getyourdata_smtp_use_real_email: True
+
+# GetYourData static file location
+# You probably won't need to modify this
+getyourdata_static_root: /home/getyourdata/static
+
+admin_email: YOUR_EMAIL_HERE
+site_domain: YOUR_DOMAIN_WITHOUT_WWW_PREFIX # eg. "getyourdata.org"

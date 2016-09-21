@@ -1,0 +1,15 @@
+---
+- hosts: all
+  tasks:
+    - group_by: key=os_{{ ansible_distribution }}
+
+- hosts: getyourdata
+  remote_user: root
+  roles:
+  - common
+  - nginx
+  - redis-cache
+  - postgresql
+  - uwsgi
+  - getyourdata
+  - http-server-ports

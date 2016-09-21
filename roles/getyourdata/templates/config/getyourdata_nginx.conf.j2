@@ -1,0 +1,23 @@
+upstream django_getyourdata {
+        server unix:///home/getyourdata/getyourdata.sock;
+}
+
+server {
+        listen 80;
+
+        server_name {{ site_domain }};
+        charset utf-8;
+        access_log /var/log/nginx/getyourdata.access.log;
+        error_log /var/log/nginx/getyourdata.error.log;
+
+        client_max_body_size 5M;
+
+        location /static {
+                alias {{ getyourdata_static_root }};
+        }
+
+        location / {
+                uwsgi_pass django_getyourdata;
+                include /home/getyourdata/webapp/uwsgi_params;
+        }
+}
