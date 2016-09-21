@@ -1,3 +1,4 @@
+#!/bin/bash
 # A simple PostgreSQL database backup script
 # You can make this run periodically using cron or other similar tool
 
